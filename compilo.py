@@ -51,17 +51,7 @@ op = { '+' : "add", '-' : "sub"}
 
 
 
-ast = grammaire.parse("""void main(int argc, char** argv) {
 
-    int y;
-    y=4;
-
-    int a;
-    a = &y;
-
-    return(a);
-}
-""")
 
 
 def asm_exp(e) :
@@ -114,8 +104,8 @@ def vars_exp(e) :
         # L'union de L et de R
         return vars_exp(e.children[0]) | vars_exp(e.children[2])
     elif e.data == "exp_pointeur":
-        print("probleme")
-        print(e.children[1])
+        
+
         return {e.children[1]}
 
 
@@ -218,7 +208,6 @@ def asm_bcom(bc) :
     return "\n"  + "".join([asm_com(c) for c in bc.children]) +"\n" # En fait on a déjà mis des /n dans les autres fonctions
 
 def vars_prg(p) :
-    print(p.pretty())
     # L = set([t.value for t in p.children[0].children])
     C = vars_bcom(p.children[2])
     R = vars_exp(p.children[3])
@@ -241,7 +230,7 @@ def asm_prg(p) :
     D = "\n".join([f"{v} : dq 0" for v in vars_prg(p)])
     moule = moule.replace("DECL_VARS", D)
     s = ""
-    print(p.children[2].pretty())
+
     for i in range(len(p.children[1].children)) :
         v = p.children[1].children[i].value
         e = f"""
@@ -260,7 +249,7 @@ def asm_prg(p) :
     return moule
 
 def pp_var_list(vl) :
-    print(vl)
+
     if vl.data == "non_vide":
         return "int argc, char** argv"
     if vl.data == "vide":
@@ -269,14 +258,48 @@ def pp_var_list(vl) :
 
 
 
-# print(pp_exp(ast))
-#print(asm_prg(ast))
+address = grammaire.parse("""void main(int argc, char** argv) {
 
-# print(ast.pretty())
-asm_prg(ast)
+    int y;
+    y=4;
+
+    int a;
+    a = &y;
+
+    return(a);
+}
+""")
+
+address = grammaire.parse("""void main(int argc, char** argv) {
+
+    int y;
+    y=4;
+
+    int a;
+    a = &y;
+
+    return(a);
+}
+""")
+
+star = grammaire.parse("""void main(int argc, char** argv) {
+
+    int y;
+    y=4;
+
+    int a;
+    a = *y;
+
+    return(a);
+}
+""")
+
+print(pp_prg(address))
+asm_prg(address)
 
 
-# asm = asm_prg(ast)
-# f = open("ouf.asm", "w")
-# f.write(asm)
-# f.close()
+
+
+
+
+

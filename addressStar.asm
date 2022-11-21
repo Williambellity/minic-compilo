@@ -4,8 +4,8 @@ section .data
 fmt : db "%d", 10, 0
 argc : dq 0
 argv : dq 0
-a : dq 0
 y : dq 0
+a : dq 0
 
 section .text
 global main
@@ -20,15 +20,8 @@ main :
 
         mov [y], rax
         
-        
-        mov rax, 2
-
-        push rax
         mov rax, [y]
 
-        pop rbx
-        add rax,rbx
-        
         mov [a], rax
         
 

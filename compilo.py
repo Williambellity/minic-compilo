@@ -1,5 +1,5 @@
 import lark
-
+import sys
 # On définit la grammaire de notre mini-c
 
 grammaire = lark.Lark(r"""
@@ -220,7 +220,7 @@ def pp_prg(p) :
     R = pp_exp(p.children[3])
     return "%s main (%s) {%s return (%s);\n}" % (TYPE,L,C,R)
 
-def asm_prg(p) :
+def asm_prg(p, fileName) :
     f = open("moule.asm")
     moule = f.read()
     C = asm_bcom(p.children[2])
@@ -243,7 +243,7 @@ def asm_prg(p) :
         s = s+e
     moule = moule.replace("INIT_VARS", s)
 
-    f = open("prog.asm", "w")
+    f = open(fileName+".asm", "w")
     f.write(moule)
     f.close()
     return moule
@@ -294,8 +294,35 @@ star = grammaire.parse("""void main(int argc, char** argv) {
 }
 """)
 
-print(pp_prg(address))
-asm_prg(address)
+starAddress = grammaire.parse("""void main(int argc, char** argv) {
+
+    int y;
+    y=4;
+
+    int a;
+    a = &y;
+
+    int b;
+    b= *a;
+
+    return(b);
+}
+""")
+
+if __name__ == "__main__":
+    arg = sys.argv[1]
+   
+    if arg == "address":
+        print(pp_prg(address))
+        asm_prg(address, "address")
+    elif arg == "star":
+        print(pp_prg(star))
+        asm_prg(star, "star")
+    elif arg == "starAddress":
+        print(pp_prg(starAddress))
+        asm_prg(star, "starAddress")
+
+
 
 
 

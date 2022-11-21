@@ -20,15 +20,8 @@ main :
 
         mov [y], rax
         
-        
-        mov rax, 2
-
-        push rax
         mov rax, [y]
 
-        pop rbx
-        add rax,rbx
-        
         mov [a], rax
         
 

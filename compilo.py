@@ -10,7 +10,7 @@ exp : SIGNED_NUMBER                     -> exp_nombre
 | POINTEUR IDENTIFIER                      -> exp_pointeur
 
 
-com : LEFT "=" exp ";"            -> assignation
+com : left "=" exp ";"            -> assignation
 | "if" "(" exp ")" "{" bcom "}"         -> if
 | "while" "(" exp ")" "{" bcom "}"      -> while
 | "print" "(" exp ")"                   -> print
@@ -26,8 +26,9 @@ var_list :                              -> vide
 
 IDENTIFIER : /[a-zA-Z][a-zA-Z0-9]*/
 STAR : /(\*)+/
-LEFT_IDENTIFIER : IDENTIFIER | STAR IDENTIFIER
-LEFT : LEFT_IDENTIFIER |  STAR "(" LEFT_IDENTIFIER + SIGNED_NUMBER ")"
+left : IDENTIFIER -> left_identifier 
+| STAR IDENTIFIER -> left_star
+|  STAR "(" IDENTIFIER + SIGNED_NUMBER ")" -> left_star_exp
 
 INTORVOID : "int" | "void"
 
@@ -69,7 +70,8 @@ def asm_exp(e) :
         toSplit = e.children[0].value
         for c in toSplit:
             if c == "*":
-                result = f"mov rax, [{e.children[1]}]\n"
+                # deux mov rax, [{e.children[1]}]
+                result = f"mov rax, [{e.children[1]}]\nmov rax, [{e.children[1]}]\n"
             elif c == "&":
                 result = f"mov rax, {e.children[1]}\n"
 
@@ -123,7 +125,17 @@ def pp_exp(e) :
 
 def pp_com(c) :
     if c.data == "assignation":
-        return f"{c.children[0]} = {pp_exp(c.children[1])};"
+        if c.children[0].data == "left_identifier":
+            var = c.children[0].children[0].value
+            return f"{var} = {pp_exp(c.children[1])}"
+        elif c.children[0].data == "left_star":
+            var = c.children[0].children[1].value
+            return f"*{var} = {pp_exp(c.children[1])}"
+        elif c.children[0].data == "left_star_exp":
+            return f"*({c.children[0].value} + {c.children[0].children[1]}) = {pp_exp(c.children[1])}"
+
+        else :
+            return "error pp_com"
     elif c.data == "if":
         return f"if ({pp_exp(c.children[0])}) {{ {pp_bcom(c.children[1])} }}"
     elif c.data == "while":
@@ -135,8 +147,18 @@ def pp_com(c) :
 
 def vars_com(c) :
     if c.data == "assignation":
-        R = vars_exp(c.children[1]) # Donne toutes les variables qu'il y a dans l'expression
-        return {c.children[0].value} | R
+        if c.children[0].data == "left_identifier":
+            var = c.children[0].children[0].value
+            return {var}
+        elif c.children[0].data == "left_star":
+            var = c.children[0].children[1].value
+            return {var}
+        elif c.children[0].data == "left_star_exp":
+            return "error NOT IMPLEMENTED"
+        else :
+            return "error vars_com"
+        # R = vars_exp(c.children[1]) # Donne toutes les variables qu'il y a dans l'expression
+        # return {c.children[0].value} | R
     elif c.data in {"if", "while"} :
         B = vars_bcom(c.children[1])
         E = vars_exp(c.children[0])
@@ -156,11 +178,20 @@ def next() :
 
 def asm_com(c) :
     if c.data == "assignation":
-        E = asm_exp(c.children[1])
-        return f"""
-        {E}
-        mov [{c.children[0].value}], rax
-        """
+        if c.children[0].data == "left_identifier":
+            var = c.children[0].children[0].value
+            return f"""
+            {asm_exp(c.children[1])}
+            mov [{var}], rax
+            """
+        elif c.children[0].data == "left_star":
+            var = c.children[0].children[1].value
+            return f"""
+            mov rbx, {c.children[1].children[0].value}
+            mov [rax], rbx
+            """
+        elif c.children[0].data == "left_star_exp":
+            return "error NOT IMPLEMENTED"
     elif c.data == "if":
         E = asm_exp(c.children[0])
         C = asm_bcom(c.children[1])
@@ -309,6 +340,38 @@ starAddress = grammaire.parse("""void main(int argc, char** argv) {
 }
 """)
 
+pointeurBasic = grammaire.parse("""void main(int argc, char** argv) {
+
+    int y;
+    y=4;
+
+    int a;
+    a = &y;
+
+    *a = 5;
+
+   
+    return(y);
+}
+""")
+
+
+# pointeurWithExp = grammaire.parse("""void main(int argc, char** argv) {
+
+  
+
+#     int a;
+#     a = 3
+
+#     *(a+2) = 5;
+#     int result 
+#     result = *(a+2);
+
+   
+#     return(y);
+# }
+# """)
+
 if __name__ == "__main__":
     arg = sys.argv[1]
    
@@ -321,6 +384,9 @@ if __name__ == "__main__":
     elif arg == "starAddress":
         print(pp_prg(starAddress))
         asm_prg(star, "starAddress")
+    elif arg == "pointeurBasic":
+        print(pp_prg(pointeurBasic))
+        asm_prg(pointeurBasic, "pointeurBasic")
 
 
 

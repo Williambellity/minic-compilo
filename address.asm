@@ -16,14 +16,14 @@ main :
     
     
 
-        mov rax, 4
+            mov rax, 4
 
-        mov [y], rax
-        
-        mov rax, y
+            mov [y], rax
+            
+            mov rax, y
 
-        mov [a], rax
-        
+            mov [a], rax
+            
 
     mov rax, [a]
 

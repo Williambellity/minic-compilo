@@ -1,4 +1,6 @@
 #!/bin/bash
+
+
 echo "Star *"
 echo "------------------"
 python3 compilo.py star
@@ -31,6 +33,18 @@ gcc -no-pie -fno-pie starAddress.o -o starAddress
 echo "               "
 echo "Result :"
 ./starAddress
+echo "               "
+echo "               "
+echo "               "
+
+echo "pointeurBasic *"
+echo "------------------"
+python3 compilo.py pointeurBasic
+nasm -f elf64 pointeurBasic.asm
+gcc -no-pie -fno-pie pointeurBasic.o -o pointeurBasic
+echo "               "
+echo "Result :"
+./pointeurBasic
 echo "               "
 echo "               "
 echo "               "
